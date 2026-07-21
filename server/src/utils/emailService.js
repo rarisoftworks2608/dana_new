@@ -16,6 +16,12 @@ function getTransporter() {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
     },
+    // Fail fast and loudly instead of hanging on Nodemailer's 2-minute
+    // default if the host is unreachable (e.g. a network/port block) -
+    // an event registration shouldn't leave a silent pending connection.
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 20000,
   });
 
   return transporter;
