@@ -1,31 +1,7 @@
-const nodemailer = require("nodemailer");
+const fs = require("fs");
 require("dotenv").config();
 
-let transporter = null;
-
-function getTransporter() {
-  if (transporter) return transporter;
-
-  const port = Number(process.env.SMTP_PORT) || 465;
-
-  transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || "smtp.hostinger.com",
-    port,
-    secure: port === 465, // true for SSL/TLS (465), false for STARTTLS (587)
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-    // Fail fast and loudly instead of hanging on Nodemailer's 2-minute
-    // default if the host is unreachable (e.g. a network/port block) -
-    // an event registration shouldn't leave a silent pending connection.
-    connectionTimeout: 15000,
-    greetingTimeout: 15000,
-    socketTimeout: 20000,
-  });
-
-  return transporter;
-}
+const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
 
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (c) => (
@@ -45,7 +21,7 @@ function buildTextBody(registration) {
   );
 }
 
-function buildHtmlBody(registration) {
+function buildHtmlBody(registration, qrPublicUrl) {
   const name = escapeHtml(registration.full_name);
   const regId = escapeHtml(registration.registration_id);
   const type = escapeHtml(registration.registration_type);
@@ -82,7 +58,7 @@ function buildHtmlBody(registration) {
       </table>
 
       <div style="text-align:center;margin:24px 0;">
-        <img src="cid:qrcode" alt="Your entry QR code" width="220" height="220" style="border:6px solid #F8FAFC;border-radius:12px;" />
+        <img src="${qrPublicUrl}" alt="Your entry QR code" width="220" height="220" style="border:6px solid #F8FAFC;border-radius:12px;" />
         <p style="font-size:13px;color:#64748B;margin:10px 0 0;">
           Show this QR code (printed or on your phone) at the venue for quick check-in.
         </p>
@@ -114,13 +90,15 @@ function buildHtmlBody(registration) {
 
 /**
  * Sends the registration confirmation email — a thank-you message with the
- * registrant's details and their entry QR code embedded inline (plus
- * attached, for offline/print use) — via Hostinger SMTP (Nodemailer).
- * Sandboxed (logged only) until SMTP_USER/SMTP_PASS are set in .env, so
- * registration keeps working during development.
+ * registrant's details, the QR code shown via its public URL (Brevo's API
+ * doesn't support cid-embedded inline images), plus attached as a PNG for
+ * offline/print use — via Brevo's HTTP API. Sent over HTTPS rather than
+ * SMTP because this app runs on a host (Railway) that blocks outbound SMTP
+ * ports at the network level. Sandboxed (logged only) until BREVO_API_KEY
+ * is set in .env, so registration keeps working during development.
  */
-async function sendConfirmationEmail(registration, qrAbsolutePath) {
-  const sandbox = !process.env.SMTP_USER || !process.env.SMTP_PASS;
+async function sendConfirmationEmail(registration, qrAbsolutePath, qrPublicUrl) {
+  const sandbox = !process.env.BREVO_API_KEY;
 
   if (sandbox) {
     console.log(
@@ -130,22 +108,37 @@ async function sendConfirmationEmail(registration, qrAbsolutePath) {
   }
 
   const fromName = process.env.EMAIL_FROM_NAME || "Dana Supplier Technology Day 2026";
+  const fromEmail = process.env.EMAIL_FROM_ADDRESS || "info@eventsportal.in";
 
   try {
-    await getTransporter().sendMail({
-      from: `"${fromName}" <${process.env.SMTP_USER}>`,
-      to: registration.email,
-      subject: "You're registered! Your event entry QR code inside",
-      text: buildTextBody(registration),
-      html: buildHtmlBody(registration),
-      attachments: [
-        {
-          filename: `entry_qr_${registration.registration_id}.png`,
-          path: qrAbsolutePath,
-          cid: "qrcode",
-        },
-      ],
+    const qrBase64 = await fs.promises.readFile(qrAbsolutePath, { encoding: "base64" });
+
+    const response = await fetch(BREVO_API_URL, {
+      method: "POST",
+      headers: {
+        "api-key": process.env.BREVO_API_KEY,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        sender: { name: fromName, email: fromEmail },
+        to: [{ email: registration.email, name: registration.full_name }],
+        subject: "You're registered! Your event entry QR code inside",
+        textContent: buildTextBody(registration),
+        htmlContent: buildHtmlBody(registration, qrPublicUrl),
+        attachment: [
+          {
+            name: `entry_qr_${registration.registration_id}.png`,
+            content: qrBase64,
+          },
+        ],
+      }),
     });
+
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(`Brevo API responded ${response.status}: ${body}`);
+    }
 
     return { ok: true, status: "sent" };
   } catch (err) {

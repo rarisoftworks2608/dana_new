@@ -43,7 +43,7 @@ async function sendNotifications(registration, qrPublicUrl, absolutePath) {
 
   let emailResult = { ok: false, status: "failed" };
   try {
-    emailResult = await sendConfirmationEmail(registration, absolutePath);
+    emailResult = await sendConfirmationEmail(registration, absolutePath, qrPublicUrl);
   } catch (err) {
     emailResult = { ok: false, status: "failed", error: err.message };
   }
