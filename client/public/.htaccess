@@ -1,0 +1,11 @@
+# Single-page app fallback: React Router handles routing client-side, so
+# any path that isn't a real file/folder in this build (e.g. /admin/login,
+# /verify/abc123) must fall back to index.html instead of Apache 404/403-ing.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>

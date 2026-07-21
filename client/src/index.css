@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+body {
+  @apply font-body text-slate-700 bg-surface antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-heading;
+}
+
+::selection {
+  @apply bg-accent/40 text-primary-dark;
+}
+
+/* Focus visibility for accessibility */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #F5B301;
+  outline-offset: 2px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #F8FAFC;
+}
+::-webkit-scrollbar-thumb {
+  background: #0057D8;
+  border-radius: 8px;
+}
+
+.container-section {
+  @apply max-w-7xl mx-auto px-5 sm:px-8 lg:px-10;
+}
+
+.section-heading {
+  @apply font-heading font-extrabold text-[1.85rem] sm:text-4xl lg:text-[2.6rem] text-primary-dark tracking-tight leading-[1.15];
+}
+
+.section-eyebrow {
+  @apply inline-block text-xs sm:text-sm font-bold uppercase tracking-[0.22em] text-accent mb-3;
+}
+
+.text-gradient-accent {
+  @apply bg-accent-gradient bg-clip-text text-transparent;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 rounded-full bg-accent-gradient text-primary-dark font-heading font-bold text-sm sm:text-base px-6 py-3 sm:px-7 sm:py-3.5 shadow-[0_10px_30px_-8px_rgba(245,179,1,0.55)] hover:shadow-[0_14px_36px_-6px_rgba(245,179,1,0.65)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300;
+}
+
+.btn-outline {
+  @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-white/70 text-white font-heading font-bold text-sm sm:text-base px-6 py-3 sm:px-7 sm:py-3.5 hover:bg-white hover:text-primary-dark hover:border-white transition-all duration-300;
+}
+
+.card {
+  @apply bg-white rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-300 border border-slate-100;
+}
+
+.glass-nav {
+  @apply bg-white/80 backdrop-blur-md border-b border-white/40;
+}

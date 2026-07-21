@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build output
+client/dist/
+client/build/
+
+# Environment secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Generated QR codes (runtime output, not source)
+server/uploads/qrcodes/*
+!server/uploads/qrcodes/.gitkeep
+
+# Archives / manual backups
+*.zip
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
