@@ -17,24 +17,23 @@ const app = express();
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(morgan("dev"));
 
- app.use(
-        cors({
-            origin: [
-              process.env.FRONTEND_URL,
-                "http://localhost:5173",
-                "http://127.0.0.1:5173",
-            ],
-            methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-            allowedHeaders: ["Content-Type", "Authorization"],
-            credentials: true,
-        })
-    );
-// app.use(
-//   cors({
-//     origin: (process.env.FRONTEND_URL || "http://localhost:5173").split(","),
-//     credentials: true,
-//   })
-// );
+const allowedOrigins = [
+  ...(process.env.FRONTEND_URL || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
