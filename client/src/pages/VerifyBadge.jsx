@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { FiCheckCircle, FiClock, FiXCircle, FiUser, FiBriefcase, FiMail, FiPhone, FiTag } from 'react-icons/fi';
+import { FiCheckCircle, FiClock, FiXCircle, FiUser, FiBriefcase, FiMail, FiPhone, FiTag, FiHeadphones } from 'react-icons/fi';
 import { verifyRegistration } from '../services/api';
 import danaAnandLogo from '../assets/logo-dana-anand.webp';
 
@@ -157,6 +157,20 @@ export default function VerifyBadge() {
               ) : (
                 <><FiClock /> Not checked in yet</>
               )}
+            </div>
+
+            <div className="mt-6 pt-5 border-t border-slate-200">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2 flex items-center justify-center gap-1.5">
+                <FiHeadphones /> Contact Us
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-4 text-sm">
+                <a href="tel:+919011046644" className="text-slate-600 hover:text-primary font-medium">
+                  90110 46644
+                </a>
+                <a href="mailto:raman.ramchandran@dana.com" className="text-slate-600 hover:text-primary font-medium break-all">
+                  raman.ramchandran@dana.com
+                </a>
+              </div>
             </div>
           </div>
         )}
