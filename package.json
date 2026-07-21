@@ -13,6 +13,7 @@
     "dev:server": "npm run dev --prefix server",
     "dev": "concurrently -n CLIENT,SERVER -c blue,green \"npm run dev:client\" \"npm run dev:server\"",
     "build:client": "npm run build --prefix client",
+    "start": "npm start --prefix server",
     "start:server": "npm start --prefix server",
     "db:migrate": "npm run migrate --prefix server",
     "db:seed": "npm run seed:admin --prefix server"
