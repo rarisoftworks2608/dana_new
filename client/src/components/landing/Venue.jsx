@@ -4,7 +4,7 @@ import ScrollReveal from '../common/ScrollReveal';
 const MAPS_URL = 'https://maps.app.goo.gl/VGjFtaXvjdTDXcPZA';
 const EMBED_URL =
   import.meta.env.VITE_GOOGLE_MAPS_EMBED_URL ||
-  'https://www.google.com/maps?q=DAIPL+Chakan+Pune&output=embed';
+  'https://www.google.com/maps?q=18.727501,73.8532838&output=embed';
 
 export default function Venue() {
   return (
