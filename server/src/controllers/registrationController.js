@@ -185,9 +185,9 @@ async function checkDuplicate(req, res) {
  * GET /api/registrations/verify/:token
  * Public, unauthenticated lookup by QR token — this is what opens when
  * someone scans a registrant's QR code with a generic camera / Google Lens
- * (rather than the admin check-in scanner). Only returns non-sensitive
- * fields; email/mobile are deliberately left out since this is reachable by
- * anyone who can see the QR code.
+ * (rather than the admin check-in scanner). Returns the full registration
+ * record by design - anyone who can see/scan the QR code can see these
+ * details, including contact info.
  */
 async function verifyByToken(req, res) {
   const { token } = req.params;
@@ -202,12 +202,17 @@ async function verifyByToken(req, res) {
       success: true,
       data: {
         fullName: registration.full_name,
+        email: registration.email,
+        mobile: registration.mobile,
         registrationId: registration.registration_id,
         registrationType: registration.registration_type,
         company: registration.company,
+        vendorName: registration.vendor_name,
+        interestedAreas: registration.interested_areas,
         status: registration.status,
         isCheckedIn: registration.is_checked_in,
         checkedInAt: registration.checked_in_at,
+        createdAt: registration.created_at,
       },
     });
   } catch (err) {

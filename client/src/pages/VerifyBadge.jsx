@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { FiCheckCircle, FiClock, FiXCircle, FiUser, FiBriefcase } from 'react-icons/fi';
+import { FiCheckCircle, FiClock, FiXCircle, FiUser, FiBriefcase, FiMail, FiPhone, FiTag } from 'react-icons/fi';
 import { verifyRegistration } from '../services/api';
 import danaAnandLogo from '../assets/logo-dana-anand.webp';
 
@@ -75,12 +75,54 @@ export default function VerifyBadge() {
                 </div>
               </div>
 
+              <div className="flex items-center gap-3">
+                <FiMail className="text-slate-400 shrink-0" />
+                <div>
+                  <p className="text-xs text-slate-400">Email</p>
+                  <p className="font-semibold text-slate-800 break-all">{state.data.email}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <FiPhone className="text-slate-400 shrink-0" />
+                <div>
+                  <p className="text-xs text-slate-400">Mobile</p>
+                  <p className="font-semibold text-slate-800">{state.data.mobile}</p>
+                </div>
+              </div>
+
               {state.data.company && (
                 <div className="flex items-center gap-3">
                   <FiBriefcase className="text-slate-400 shrink-0" />
                   <div>
                     <p className="text-xs text-slate-400">Company</p>
                     <p className="font-semibold text-slate-800">{state.data.company}</p>
+                  </div>
+                </div>
+              )}
+
+              {state.data.vendorName && (
+                <div className="flex items-center gap-3">
+                  <FiBriefcase className="text-slate-400 shrink-0" />
+                  <div>
+                    <p className="text-xs text-slate-400">Vendor Name</p>
+                    <p className="font-semibold text-slate-800">{state.data.vendorName}</p>
+                  </div>
+                </div>
+              )}
+
+              {Array.isArray(state.data.interestedAreas) && state.data.interestedAreas.length > 0 && (
+                <div className="flex items-start gap-3">
+                  <FiTag className="text-slate-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs text-slate-400 mb-1">Interested Technology Areas</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {state.data.interestedAreas.map((area) => (
+                        <span key={area} className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                          {area}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
@@ -96,6 +138,15 @@ export default function VerifyBadge() {
                   {state.data.registrationType}
                 </span>
               </div>
+
+              {state.data.createdAt && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-400">Registered On</span>
+                  <span className="text-sm font-semibold text-slate-700">
+                    {new Date(state.data.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className={`mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${
