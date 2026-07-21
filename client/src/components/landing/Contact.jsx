@@ -1,20 +1,17 @@
-import { FiPhone, FiMail, FiMapPin, FiMessageCircle } from 'react-icons/fi';
+import { FiPhone, FiMail } from 'react-icons/fi';
 import ScrollReveal from '../common/ScrollReveal';
 
 export default function Contact() {
   return (
     <section id="contact" className="container-section py-20 sm:py-28">
       <ScrollReveal className="text-center max-w-2xl mx-auto mb-14">
-        <span className="section-eyebrow">Get In Touch</span>
-        <h2 className="section-heading">Contact Dana India</h2>
+        <h2 className="section-heading">Contact Us</h2>
       </ScrollReveal>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid sm:grid-cols-2 gap-6 max-w-xl mx-auto">
         {[
-          { icon: FiPhone, label: 'Phone', value: '+91 20 6674 0000', href: 'tel:+912066740000' },
-          { icon: FiMail, label: 'Email', value: 'supplierevents@danaindia.com', href: 'mailto:supplierevents@danaindia.com' },
-          { icon: FiMapPin, label: 'Office Address', value: 'DAIPL, Chakan, Pune, Maharashtra' },
-          { icon: FiMessageCircle, label: 'WhatsApp', value: '+91 98765 43210', href: 'https://wa.me/919876543210' },
+          { icon: FiPhone, label: 'Phone', value: '90110 46644', href: 'tel:+919011046644' },
+          { icon: FiMail, label: 'Email', value: 'raman.ramchandran@dana.com', href: 'mailto:raman.ramchandran@dana.com' },
         ].map(({ icon: Icon, label, value, href }, idx) => (
           <ScrollReveal key={label} delay={idx * 0.08}>
             <div className="card p-6 text-center h-full">

@@ -1,7 +1,7 @@
 import { FiMapPin, FiExternalLink, FiCheckCircle } from 'react-icons/fi';
 import ScrollReveal from '../common/ScrollReveal';
 
-const MAPS_URL = 'https://www.google.com/maps/search/?api=1&query=DAIPL+Chakan+Pune';
+const MAPS_URL = 'https://maps.app.goo.gl/VGjFtaXvjdTDXcPZA';
 const EMBED_URL =
   import.meta.env.VITE_GOOGLE_MAPS_EMBED_URL ||
   'https://www.google.com/maps?q=DAIPL+Chakan+Pune&output=embed';
@@ -34,15 +34,13 @@ export default function Venue() {
             <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-2xl text-primary mb-5">
               <FiMapPin />
             </div>
-            <h3 className="font-heading font-bold text-2xl text-primary-dark mb-2">DAIPL</h3>
+            <h3 className="font-heading font-bold text-2xl text-primary-dark mb-1">DAIPL</h3>
+            <p className="text-sm text-slate-500 mb-2">Dana Anand India Private Limited</p>
             <p className="text-slate-600 mb-6">Chakan, Pune, Maharashtra, India</p>
 
             <ul className="space-y-3 mb-8">
               <li className="flex items-center gap-2 text-slate-700">
                 <FiCheckCircle className="text-primary" /> Parking Available
-              </li>
-              <li className="flex items-center gap-2 text-slate-700">
-                <FiCheckCircle className="text-primary" /> Refreshments Available
               </li>
             </ul>
 

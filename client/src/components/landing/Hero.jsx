@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { FiCalendar, FiMapPin, FiUsers, FiArrowRight } from 'react-icons/fi';
+import { FiCalendar, FiClock, FiMapPin, FiUsers, FiArrowRight } from 'react-icons/fi';
 import { useCountdown } from '../../hooks/useCountdown';
 import { EVENT_DATE_ISO } from '../../utils/eventData';
 import heroBg from '../../assets/hero-bg.webp';
@@ -16,6 +16,7 @@ const AUDIENCE = [
 
 const INFO_CARDS = [
   { icon: FiCalendar, title: 'Date', body: '28 July 2026 (Tuesday)' },
+  { icon: FiClock, title: 'Time', body: '09:00 AM – 05:30 PM' },
   { icon: FiMapPin, title: 'Venue', body: 'DAIPL, Chakan, Pune' },
 ];
 
@@ -130,7 +131,7 @@ export default function Hero() {
               <CountdownBlock value={minutes} label="Minutes" delay={0.6} />
               <CountdownBlock value={seconds} label="Seconds" delay={0.65} />
             </div>
-            <p className="text-white/40 text-xs mt-3">28 July 2026, 09:00 AM IST</p>
+            <p className="text-white/40 text-xs mt-3">28 July 2026, 09:00 AM – 05:30 PM IST</p>
           </motion.div>
         </div>
 

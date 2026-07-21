@@ -48,9 +48,9 @@ export default function Footer() {
         <div>
           <h4 className="font-heading font-bold text-white mb-4">Contact</h4>
           <ul className="space-y-2 text-sm">
-            <li>DAIPL, Chakan, Pune</li>
-            <li>supplierevents@danaindia.com</li>
-            <li>+91 20 6674 0000</li>
+            <li>DAIPL (Dana Anand India Private Limited), Chakan, Pune</li>
+            <li>raman.ramchandran@dana.com</li>
+            <li>90110 46644</li>
           </ul>
         </div>
 
