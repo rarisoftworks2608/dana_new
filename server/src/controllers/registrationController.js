@@ -23,6 +23,38 @@ async function logNotification(registrationId, channel, status, errorMessage = n
 }
 
 /**
+ * Fires WhatsApp + email off in the background, after the registration
+ * response has already been sent to the client - actual SMTP/API round
+ * trips here are seconds slower than a DB write and must never make the
+ * registrant sit on "Submitting..." waiting for them.
+ */
+async function sendNotifications(registration, qrPublicUrl, absolutePath) {
+  let whatsappResult = { ok: false, status: "failed" };
+  try {
+    whatsappResult = await sendWhatsAppConfirmation(registration, qrPublicUrl);
+  } catch (err) {
+    whatsappResult = { ok: false, status: "failed", error: err.message };
+  }
+  await Registration.updateOne(
+    { _id: registration._id },
+    { whatsapp_sent: whatsappResult.ok, whatsapp_sent_at: whatsappResult.ok ? new Date() : null }
+  );
+  await logNotification(registration.id, "whatsapp", whatsappResult.status, whatsappResult.error);
+
+  let emailResult = { ok: false, status: "failed" };
+  try {
+    emailResult = await sendConfirmationEmail(registration, absolutePath);
+  } catch (err) {
+    emailResult = { ok: false, status: "failed", error: err.message };
+  }
+  await Registration.updateOne(
+    { _id: registration._id },
+    { email_sent: emailResult.ok, email_sent_at: emailResult.ok ? new Date() : null }
+  );
+  await logNotification(registration.id, "email", emailResult.status, emailResult.error);
+}
+
+/**
  * POST /api/registrations
  * Accepts the exact payload shape produced by the landing page's
  * registration form (camelCase field names).
@@ -98,31 +130,10 @@ async function createRegistration(req, res) {
 
     const qrPublicUrl = `${process.env.BACKEND_URL || "http://localhost:5000"}/${relativePath}`;
 
-    // ---- Notifications (best-effort, never block or fail the registration response) ----
-    let whatsappResult = { ok: false, status: "failed" };
-    let emailResult = { ok: false, status: "failed" };
-
-    try {
-      whatsappResult = await sendWhatsAppConfirmation(registration, qrPublicUrl);
-    } catch (err) {
-      whatsappResult = { ok: false, status: "failed", error: err.message };
-    }
-    await Registration.updateOne(
-      { _id: registration._id },
-      { whatsapp_sent: whatsappResult.ok, whatsapp_sent_at: whatsappResult.ok ? new Date() : null }
-    );
-    await logNotification(registration.id, "whatsapp", whatsappResult.status, whatsappResult.error);
-
-    try {
-      emailResult = await sendConfirmationEmail(registration, absolutePath);
-    } catch (err) {
-      emailResult = { ok: false, status: "failed", error: err.message };
-    }
-    await Registration.updateOne(
-      { _id: registration._id },
-      { email_sent: emailResult.ok, email_sent_at: emailResult.ok ? new Date() : null }
-    );
-    await logNotification(registration.id, "email", emailResult.status, emailResult.error);
+    // ---- Notifications (best-effort, run in the background - do not await) ----
+    sendNotifications(registration, qrPublicUrl, absolutePath).catch((err) => {
+      console.error("Background notification error:", err);
+    });
 
     return res.status(201).json({
       success: true,
