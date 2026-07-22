@@ -38,8 +38,8 @@ async function sendWhatsAppConfirmation(registration, qrPublicUrl) {
         {
           type: "body",
           parameters: [
-            { type: "text", text: registration.full_name },
-            { type: "text", text: registration.registration_type },
+            { type: "text", parameter_name: "user_name", text: registration.full_name },
+            { type: "text", parameter_name: "registering_as", text: registration.registration_type },
           ],
         },
       ],
