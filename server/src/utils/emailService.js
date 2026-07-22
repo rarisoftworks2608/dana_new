@@ -15,7 +15,7 @@ function buildTextBody(registration) {
     `Thank you for registering as ${registration.registration_type} for Dana Supplier Technology Day 2026.\n\n` +
     `Your registration code: ${registration.registration_id}\n` +
     `Your unique entry QR code is attached — please bring it (printed or on your phone) to the venue for quick check-in.\n\n` +
-    `Event Date: 28 July 2026, 09:00 AM IST\n` +
+    `Event Date: 28 July 2026, 10:00 AM – 05:30 PM IST\n` +
     `Venue: Chakan Office Premises\n\n` +
     `See you there!\nDana Anaand India Private Limited`
   );
@@ -67,7 +67,7 @@ function buildHtmlBody(registration, qrPublicUrl) {
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #E2E8F0;padding-top:20px;margin-top:8px;">
         <tr>
           <td style="font-size:14px;color:#64748B;padding-bottom:6px;">📅 Event Date</td>
-          <td style="font-size:14px;color:#0F172A;text-align:right;padding-bottom:6px;">28 July 2026, 09:00 AM IST</td>
+          <td style="font-size:14px;color:#0F172A;text-align:right;padding-bottom:6px;">28 July 2026, 10:00 AM – 05:30 PM IST</td>
         </tr>
         <tr>
           <td style="font-size:14px;color:#64748B;">📍 Venue</td>
