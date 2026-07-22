@@ -36,8 +36,8 @@ export default function Objectives() {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-12 max-w-4xl mx-auto">
           {OBJECTIVES.map((obj, idx) => (
-            <ScrollReveal key={obj} delay={idx * 0.06} direction="zoom">
-              <div className="flex items-center gap-3 bg-white/5 border border-white/15 rounded-xl px-5 py-4 text-left backdrop-blur-sm">
+            <ScrollReveal key={obj} delay={idx * 0.06} direction="zoom" className="h-full">
+              <div className="flex items-center gap-3 h-full bg-white/5 border border-white/15 rounded-xl px-5 py-4 text-left backdrop-blur-sm">
                 <span className="w-8 h-8 rounded-full bg-accent-gradient flex items-center justify-center text-primary-dark shrink-0">
                   <FiCheck />
                 </span>
