@@ -20,9 +20,12 @@ async function sendWhatsAppConfirmation(registration, qrPublicUrl) {
 
   const url = `https://graph.facebook.com/${process.env.WHATSAPP_API_VERSION}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
 
+  const countryCode = process.env.WHATSAPP_DEFAULT_COUNTRY_CODE || "91";
+  const toNumber = `${countryCode}${registration.mobile}`;
+
   const payload = {
     messaging_product: "whatsapp",
-    to: registration.mobile,
+    to: toNumber,
     type: "template",
     template: {
       name: process.env.WHATSAPP_TEMPLATE_NAME,
