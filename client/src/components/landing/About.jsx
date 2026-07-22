@@ -45,7 +45,7 @@ export default function About() {
           <div className="relative">
             <div className="absolute -inset-4 bg-accent-gradient rounded-3xl opacity-20 blur-2xl" />
             <div className="relative grid grid-cols-2 gap-4">
-              <div className="card p-6 flex flex-col items-center text-center gap-2 translate-y-6">
+              <div className="card p-6 flex flex-col items-center text-center gap-2">
                 <span className="font-heading font-extrabold text-3xl text-primary">28</span>
                 <span className="text-sm text-slate-500">July 2026</span>
               </div>
@@ -57,7 +57,7 @@ export default function About() {
                 <span className="font-heading font-extrabold text-3xl text-primary">10+</span>
                 <span className="text-sm text-slate-500">Tech Domains</span>
               </div>
-              <div className="card p-6 flex flex-col items-center text-center gap-2 translate-y-6">
+              <div className="card p-6 flex flex-col items-center text-center gap-2">
                 <span className="font-heading font-extrabold text-3xl text-primary">20+</span>
                 <span className="text-sm text-slate-500">Tech Partners</span>
               </div>
