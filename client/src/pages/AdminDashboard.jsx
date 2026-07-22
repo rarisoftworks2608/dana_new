@@ -8,7 +8,7 @@ import DailyTrendChart from '../components/admin/DailyTrendChart';
 import RegistrationsTable from '../components/admin/RegistrationsTable';
 import EditRegistrationModal from '../components/admin/EditRegistrationModal';
 import {
-  getDashboardStats, getRegistrations, updateRegistration, deleteRegistration, exportUrl,
+  getDashboardStats, getRegistrations, updateRegistration, deleteRegistration, downloadExport,
 } from '../services/api';
 import { REGISTRATION_TYPES } from '../utils/eventData';
 
@@ -86,6 +86,14 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleExport = async (format) => {
+    try {
+      await downloadExport(format);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Export failed');
+    }
+  };
+
   const totalPages = Math.max(Math.ceil(total / PAGE_SIZE), 1);
 
   return (
@@ -112,12 +120,12 @@ export default function AdminDashboard() {
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
           <h3 className="font-heading font-bold text-primary-dark">Registrations</h3>
           <div className="flex flex-wrap gap-3">
-            <a href={exportUrl('excel')} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full border border-primary text-primary px-4 py-2 text-sm font-semibold hover:bg-primary hover:text-white transition-colors">
+            <button type="button" onClick={() => handleExport('excel')} className="inline-flex items-center gap-2 rounded-full border border-primary text-primary px-4 py-2 text-sm font-semibold hover:bg-primary hover:text-white transition-colors">
               <FiDownload /> Excel
-            </a>
-            <a href={exportUrl('csv')} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full border border-primary text-primary px-4 py-2 text-sm font-semibold hover:bg-primary hover:text-white transition-colors">
+            </button>
+            <button type="button" onClick={() => handleExport('csv')} className="inline-flex items-center gap-2 rounded-full border border-primary text-primary px-4 py-2 text-sm font-semibold hover:bg-primary hover:text-white transition-colors">
               <FiFileText /> CSV
-            </a>
+            </button>
           </div>
         </div>
 
