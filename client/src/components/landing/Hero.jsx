@@ -16,7 +16,7 @@ const AUDIENCE = [
 
 const INFO_CARDS = [
   { icon: FiCalendar, title: 'Date', body: '28 July 2026 (Tuesday)' },
-  { icon: FiClock, title: 'Time', body: '09:00 AM – 05:30 PM' },
+  { icon: FiClock, title: 'Time', body: '10:00 AM – 05:30 PM' },
   { icon: FiMapPin, title: 'Venue', body: 'DAIPL, Chakan, Pune' },
 ];
 
@@ -131,7 +131,7 @@ export default function Hero() {
               <CountdownBlock value={minutes} label="Minutes" delay={0.6} />
               <CountdownBlock value={seconds} label="Seconds" delay={0.65} />
             </div>
-            <p className="text-white/40 text-xs mt-3">28 July 2026, 09:00 AM – 05:30 PM IST</p>
+            <p className="text-white/40 text-xs mt-3">28 July 2026, 10:00 AM – 05:30 PM IST</p>
           </motion.div>
         </div>
 

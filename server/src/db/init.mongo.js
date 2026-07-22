@@ -38,7 +38,7 @@ print("Indexes created.");
 if (db.events.countDocuments() === 0) {
   db.events.insertOne({
     name: "Dana Supplier Technology Day 2026",
-    event_date: new Date("2026-07-28T09:00:00"),
+    event_date: new Date("2026-07-28T10:00:00"),
     venue: "Chakan Office Premises",
     description:
       "Dana's platform to collaborate with our supplier ecosystem, share our vision for the future, and co-create innovative solutions that drive sustainable growth.",

@@ -5,7 +5,7 @@ import {
 import { GiRobotGrab } from 'react-icons/gi';
 import { PiPlantBold } from 'react-icons/pi';
 
-export const EVENT_DATE_ISO = import.meta.env.VITE_EVENT_DATE || '2026-07-28T09:00:00+05:30';
+export const EVENT_DATE_ISO = import.meta.env.VITE_EVENT_DATE || '2026-07-28T10:00:00+05:30';
 
 export const TECH_FOCUS_AREAS = [
   {
