@@ -25,9 +25,20 @@ export default function Navbar() {
 
   const handleNavClick = (e, href) => {
     e.preventDefault();
-    setMobileOpen(false);
-    const el = document.querySelector(href);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const scrollToTarget = () => {
+      const el = document.querySelector(href);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    if (mobileOpen) {
+      // Wait for the mobile menu's collapse animation to finish first -
+      // scrolling while it's still closing calculates the target against a
+      // layout that's mid-transition and lands in the wrong place.
+      setMobileOpen(false);
+      setTimeout(scrollToTarget, 350);
+    } else {
+      scrollToTarget();
+    }
   };
 
   return (
