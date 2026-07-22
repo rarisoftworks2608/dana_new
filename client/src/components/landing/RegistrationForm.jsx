@@ -8,6 +8,65 @@ import { registerAttendee } from '../../services/api';
 import { REGISTRATION_TYPES, TECHNOLOGY_INTEREST_OPTIONS } from '../../utils/eventData';
 import bgGradient from '../../assets/bg-gradient.webp';
 
+async function downloadRegistrationPdf(result) {
+  // Loaded on demand (only when someone actually downloads a confirmation)
+  // instead of bundled into the main landing-page chunk every visitor pays
+  // for - jsPDF pulls in html2canvas as an optional dependency, adding
+  // ~130KB gzip that most visitors never need.
+  const { default: jsPDF } = await import('jspdf');
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+
+  doc.setFillColor(0, 59, 142);
+  doc.rect(0, 0, pageWidth, 90, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.text('Dana Supplier Technology Day 2026', pageWidth / 2, 42, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.text('Registration Confirmed', pageWidth / 2, 64, { align: 'center' });
+
+  let y = 130;
+  const labelX = 70;
+  const valueX = 230;
+
+  const row = (label, value) => {
+    doc.setTextColor(20, 20, 20);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text(label, labelX, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(String(value ?? ''), valueX, y);
+    y += 26;
+  };
+
+  row('Registration ID:', result.registrationId);
+  row('Full Name:', result.fullName);
+  row('Email:', result.email);
+  row('Registering As:', result.registrationType);
+
+  if (result.qrCodeImage) {
+    y += 14;
+    const qrSize = 190;
+    const qrX = (pageWidth - qrSize) / 2;
+    doc.addImage(result.qrCodeImage, 'PNG', qrX, y, qrSize, qrSize);
+    y += qrSize + 22;
+    doc.setTextColor(100, 100, 100);
+    doc.setFontSize(10);
+    doc.text('Show this QR code (printed or on your phone) at the venue for quick check-in.', pageWidth / 2, y, { align: 'center' });
+    y += 34;
+  }
+
+  doc.setTextColor(70, 70, 70);
+  doc.setFontSize(10);
+  doc.text('Event Date: 28 July 2026, 10:00 AM – 05:30 PM IST', pageWidth / 2, y, { align: 'center' });
+  y += 16;
+  doc.text('Venue: DAIPL, Chakan, Pune', pageWidth / 2, y, { align: 'center' });
+
+  doc.save(`${result.registrationId}-confirmation.pdf`);
+}
+
 function SuccessModal({ result, onClose }) {
   if (!result) return null;
   return (
@@ -51,13 +110,13 @@ function SuccessModal({ result, onClose }) {
                 alt={`QR Code for registration ${result.registrationId}`}
                 className="w-48 h-48 border-4 border-slate-100 rounded-xl"
               />
-              <a
-                href={result.qrCodeImage}
-                download={`${result.registrationId}-qrcode.png`}
+              <button
+                type="button"
+                onClick={() => downloadRegistrationPdf(result).catch(() => toast.error('Could not generate PDF. Please try again.'))}
                 className="btn-primary !py-2.5 !px-6 text-sm"
               >
-                Download QR Code <FiDownload />
-              </a>
+                Download PDF <FiDownload />
+              </button>
             </div>
           )}
         </motion.div>
