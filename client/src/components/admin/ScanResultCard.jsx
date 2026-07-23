@@ -37,14 +37,14 @@ export default function ScanResultCard({ result, processing, onConfirm, onDismis
                 </div>
               )}
 
-              <div className="flex gap-3 mt-4">
+              <div className="flex flex-col sm:flex-row gap-3 mt-4">
                 {result.status === 'preview' ? (
                   <>
                     <button
                       type="button"
                       onClick={() => onConfirm(result.qrToken)}
                       disabled={processing}
-                      className="flex-1 rounded-full bg-green-600 text-white font-semibold py-2.5 text-sm hover:bg-green-700 disabled:opacity-60"
+                      className="w-full sm:flex-1 order-1 rounded-full bg-green-600 text-white font-semibold py-3 sm:py-2.5 text-sm hover:bg-green-700 disabled:opacity-60"
                     >
                       {processing ? 'Checking in...' : 'Confirm Check-In'}
                     </button>
@@ -52,7 +52,7 @@ export default function ScanResultCard({ result, processing, onConfirm, onDismis
                       type="button"
                       onClick={onDismiss}
                       disabled={processing}
-                      className="rounded-full border border-slate-300 text-slate-600 font-semibold py-2.5 px-5 text-sm hover:bg-slate-50 disabled:opacity-60"
+                      className="w-full sm:w-auto order-2 rounded-full border border-slate-300 text-slate-600 font-semibold py-3 sm:py-2.5 px-5 text-sm hover:bg-slate-50 disabled:opacity-60"
                     >
                       Cancel
                     </button>
@@ -61,7 +61,7 @@ export default function ScanResultCard({ result, processing, onConfirm, onDismis
                   <button
                     type="button"
                     onClick={onDismiss}
-                    className="rounded-full border border-slate-300 text-slate-600 font-semibold py-2.5 px-5 text-sm hover:bg-slate-50"
+                    className="w-full sm:w-auto rounded-full border border-slate-300 text-slate-600 font-semibold py-3 sm:py-2.5 px-5 text-sm hover:bg-slate-50"
                   >
                     Scan Next
                   </button>

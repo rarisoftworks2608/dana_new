@@ -212,45 +212,46 @@ export default function AdminScanner() {
 
   return (
     <AdminLayout title="QR Attendance Scanner">
-      <div className="grid lg:grid-cols-[1fr_1.2fr] gap-6">
+      <div className="max-w-xl mx-auto">
         <div className="card p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-heading font-bold text-primary-dark flex items-center gap-2">
-              <FiCamera /> Camera
+              <FiCamera /> {result ? 'Attendee Details' : 'Camera'}
             </h3>
-            <button
-              onClick={toggleScanner}
-              className="inline-flex items-center gap-2 rounded-full border border-primary text-primary px-4 py-1.5 text-sm font-semibold hover:bg-primary hover:text-white transition-colors"
-            >
-              {isRunning ? <><FiPause /> Pause</> : <><FiPlay /> Resume</>}
-            </button>
-          </div>
-
-          <div id={SCANNER_ELEMENT_ID} className="rounded-xl overflow-hidden bg-slate-900 min-h-[320px]" />
-
-          {cameraError && (
-            <p className="text-red-500 text-sm mt-4">
-              Camera error: {cameraError}. Please allow camera access and reload the page.
-            </p>
-          )}
-          {processing && <p className="text-primary text-sm mt-4 animate-pulse">Looking up QR code...</p>}
-        </div>
-
-        <div className="space-y-4">
-          <div className="card p-6">
-            <h3 className="font-heading font-bold text-primary-dark mb-2">Scan Result</h3>
-            <p className="text-sm text-slate-500 mb-4">Point the camera at an attendee&rsquo;s QR code to look them up.</p>
-            {result ? (
-              <ScanResultCard
-                result={result}
-                processing={processing}
-                onConfirm={handleConfirmCheckIn}
-                onDismiss={handleDismiss}
-              />
-            ) : (
-              <p className="text-slate-400 text-sm text-center py-12">No scans yet. Awaiting a QR code...</p>
+            {!result && (
+              <button
+                onClick={toggleScanner}
+                className="inline-flex items-center gap-2 rounded-full border border-primary text-primary px-4 py-1.5 text-sm font-semibold hover:bg-primary hover:text-white transition-colors"
+              >
+                {isRunning ? <><FiPause /> Pause</> : <><FiPlay /> Resume</>}
+              </button>
             )}
           </div>
+
+          {/* The scanner element must stay mounted at all times — html5-qrcode
+              binds to this DOM node directly, so removing it from the tree
+              (rather than just hiding it) would kill the running camera
+              instance. Scanning a QR code pauses it and shows the details
+              panel below in its place; Cancel/Scan Next un-hides it again. */}
+          <div className={result ? 'hidden' : ''}>
+            <div id={SCANNER_ELEMENT_ID} className="rounded-xl overflow-hidden bg-slate-900 min-h-[320px]" />
+            {cameraError && (
+              <p className="text-red-500 text-sm mt-4">
+                Camera error: {cameraError}. Please allow camera access and reload the page.
+              </p>
+            )}
+            {processing && <p className="text-primary text-sm mt-4 animate-pulse">Looking up QR code...</p>}
+            <p className="text-slate-400 text-sm text-center py-6">Point the camera at an attendee&rsquo;s QR code to look them up.</p>
+          </div>
+
+          {result && (
+            <ScanResultCard
+              result={result}
+              processing={processing}
+              onConfirm={handleConfirmCheckIn}
+              onDismiss={handleDismiss}
+            />
+          )}
         </div>
       </div>
     </AdminLayout>
