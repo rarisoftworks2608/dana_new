@@ -1,13 +1,14 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiCheckCircle, FiAlertTriangle, FiXCircle } from 'react-icons/fi';
+import { FiCheckCircle, FiAlertTriangle, FiXCircle, FiUserCheck } from 'react-icons/fi';
 
 const STYLES = {
+  preview: { bg: 'bg-blue-50', border: 'border-blue-200', icon: FiUserCheck, iconColor: 'text-blue-600' },
   success: { bg: 'bg-green-50', border: 'border-green-200', icon: FiCheckCircle, iconColor: 'text-green-600' },
   duplicate: { bg: 'bg-amber-50', border: 'border-amber-200', icon: FiAlertTriangle, iconColor: 'text-amber-600' },
   error: { bg: 'bg-red-50', border: 'border-red-200', icon: FiXCircle, iconColor: 'text-red-600' },
 };
 
-export default function ScanResultCard({ result }) {
+export default function ScanResultCard({ result, processing, onConfirm, onDismiss }) {
   return (
     <AnimatePresence mode="wait">
       {result && (
@@ -35,6 +36,37 @@ export default function ScanResultCard({ result }) {
                   <p><span className="text-slate-400">Mobile:</span> <span className="font-semibold">{result.profile.mobile}</span></p>
                 </div>
               )}
+
+              <div className="flex gap-3 mt-4">
+                {result.status === 'preview' ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => onConfirm(result.qrToken)}
+                      disabled={processing}
+                      className="flex-1 rounded-full bg-green-600 text-white font-semibold py-2.5 text-sm hover:bg-green-700 disabled:opacity-60"
+                    >
+                      {processing ? 'Checking in...' : 'Confirm Check-In'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onDismiss}
+                      disabled={processing}
+                      className="rounded-full border border-slate-300 text-slate-600 font-semibold py-2.5 px-5 text-sm hover:bg-slate-50 disabled:opacity-60"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={onDismiss}
+                    className="rounded-full border border-slate-300 text-slate-600 font-semibold py-2.5 px-5 text-sm hover:bg-slate-50"
+                  >
+                    Scan Next
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </motion.div>

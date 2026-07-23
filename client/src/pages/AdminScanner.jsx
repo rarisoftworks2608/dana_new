@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { FiCamera, FiPause, FiPlay } from 'react-icons/fi';
 import AdminLayout from '../layouts/AdminLayout';
 import ScanResultCard from '../components/admin/ScanResultCard';
-import { scanCheckIn } from '../services/api';
+import { scanCheckIn, verifyRegistration } from '../services/api';
 
 const SCANNER_ELEMENT_ID = 'dana-qr-reader';
 const RESCAN_COOLDOWN_MS = 3000;
@@ -23,6 +23,17 @@ function extractQrToken(decodedText) {
   }
 }
 
+function mapProfile(registration) {
+  if (!registration) return null;
+  return {
+    registrationId: registration.registrationId,
+    fullName: registration.fullName,
+    company: registration.company,
+    registrationType: registration.registrationType,
+    mobile: registration.mobile,
+  };
+}
+
 export default function AdminScanner() {
   const scannerRef = useRef(null);
   const lastScanRef = useRef({ text: null, at: 0 });
@@ -31,6 +42,37 @@ export default function AdminScanner() {
   const [result, setResult] = useState(null);
   const [processing, setProcessing] = useState(false);
 
+  // html5-qrcode's `isScanning` flag stays true whether the camera is
+  // actively scanning or merely paused (it only flips on start()/stop()),
+  // so pause/resume state has to be tracked via our own `isRunning` state
+  // instead of querying the instance.
+  const pauseCamera = useCallback(() => {
+    const instance = scannerRef.current;
+    if (!instance || !isRunning) return;
+    try {
+      instance.pause(true);
+      setIsRunning(false);
+    } catch {
+      // already paused/stopped — nothing to do
+    }
+  }, [isRunning]);
+
+  const resumeCamera = useCallback(() => {
+    const instance = scannerRef.current;
+    if (!instance || isRunning) return;
+    try {
+      instance.resume();
+      setIsRunning(true);
+    } catch {
+      // already scanning — nothing to do
+    }
+  }, [isRunning]);
+
+  // Step 1: scanning a QR code only looks the attendee up and shows their
+  // details — nothing is written to the database yet. This mirrors how a
+  // real check-in desk works: the staff member sees who it is before
+  // waving them through, rather than the scan itself silently checking
+  // someone in.
   const handleScanSuccess = useCallback(async (decodedText) => {
     const now = Date.now();
     if (lastScanRef.current.text === decodedText && now - lastScanRef.current.at < RESCAN_COOLDOWN_MS) {
@@ -40,15 +82,60 @@ export default function AdminScanner() {
 
     if (processing) return;
     setProcessing(true);
+    pauseCamera();
+    const qrToken = extractQrToken(decodedText);
 
     try {
-      const { data } = await scanCheckIn(extractQrToken(decodedText));
+      const { data } = await verifyRegistration(qrToken);
+      const reg = data.data;
+
+      if (reg.status === 'cancelled') {
+        setResult({
+          status: 'error',
+          title: 'Registration Cancelled',
+          message: `${reg.fullName}'s registration has been cancelled and cannot be checked in.`,
+          profile: mapProfile(reg),
+          timestamp: now,
+        });
+      } else if (reg.isCheckedIn) {
+        setResult({
+          status: 'duplicate',
+          title: 'Already Checked In',
+          message: `${reg.fullName} was already checked in at ${new Date(reg.checkedInAt).toLocaleTimeString('en-IN')}.`,
+          profile: mapProfile(reg),
+          timestamp: now,
+        });
+      } else {
+        setResult({
+          status: 'preview',
+          title: 'Attendee Found',
+          message: `Confirm check-in for ${reg.fullName}?`,
+          profile: mapProfile(reg),
+          qrToken,
+          timestamp: now,
+        });
+      }
+    } catch (err) {
+      const message = err?.response?.data?.message || 'Invalid QR code or scan failed.';
+      setResult({ status: 'error', title: 'Scan Failed', message, profile: null, timestamp: now });
+      toast.error(message);
+    } finally {
+      setProcessing(false);
+    }
+  }, [processing, pauseCamera]);
+
+  // Step 2: staff explicitly confirms — this is the only action that
+  // actually marks the attendee as checked in.
+  const handleConfirmCheckIn = useCallback(async (qrToken) => {
+    setProcessing(true);
+    try {
+      const { data } = await scanCheckIn(qrToken);
       setResult({
         status: 'success',
         title: 'Check-In Successful',
         message: data.message,
         profile: mapProfile(data.data.registration),
-        timestamp: now,
+        timestamp: Date.now(),
       });
       toast.success(data.message);
     } catch (err) {
@@ -59,18 +146,32 @@ export default function AdminScanner() {
           title: 'Already Checked In',
           message: res.data.message,
           profile: mapProfile(res.data.data.registration),
-          timestamp: now,
+          timestamp: Date.now(),
         });
-        toast(res.data.message, { icon: '⚠️' });
       } else {
-        const message = res?.data?.message || 'Invalid QR code or scan failed.';
-        setResult({ status: 'error', title: 'Scan Failed', message, profile: null, timestamp: now });
+        const message = res?.data?.message || 'Check-in failed. Please try again.';
+        setResult({ status: 'error', title: 'Check-In Failed', message, profile: null, timestamp: Date.now() });
         toast.error(message);
       }
     } finally {
       setProcessing(false);
     }
-  }, [processing]);
+  }, []);
+
+  const handleDismiss = useCallback(() => {
+    setResult(null);
+    resumeCamera();
+  }, [resumeCamera]);
+
+  // instance.start() below only runs once on mount, so the callback it's
+  // given would otherwise permanently close over that render's stale
+  // `handleScanSuccess` (and in turn stale `processing`/`isRunning`).
+  // Routing through a ref that's kept current every render means the
+  // camera always dispatches to the latest version.
+  const handleScanSuccessRef = useRef(handleScanSuccess);
+  useEffect(() => {
+    handleScanSuccessRef.current = handleScanSuccess;
+  }, [handleScanSuccess]);
 
   useEffect(() => {
     const instance = new Html5Qrcode(SCANNER_ELEMENT_ID);
@@ -80,7 +181,7 @@ export default function AdminScanner() {
       .start(
         { facingMode: 'environment' },
         { fps: 10, qrbox: { width: 260, height: 260 } },
-        (decodedText) => handleScanSuccess(decodedText),
+        (decodedText) => handleScanSuccessRef.current(decodedText),
         () => {} // per-frame scan failure, ignored
       )
       .then(() => setIsRunning(true))
@@ -91,7 +192,6 @@ export default function AdminScanner() {
         instance.stop().catch(() => {});
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggleScanner = async () => {
@@ -133,15 +233,20 @@ export default function AdminScanner() {
               Camera error: {cameraError}. Please allow camera access and reload the page.
             </p>
           )}
-          {processing && <p className="text-primary text-sm mt-4 animate-pulse">Verifying QR code...</p>}
+          {processing && <p className="text-primary text-sm mt-4 animate-pulse">Looking up QR code...</p>}
         </div>
 
         <div className="space-y-4">
           <div className="card p-6">
             <h3 className="font-heading font-bold text-primary-dark mb-2">Scan Result</h3>
-            <p className="text-sm text-slate-500 mb-4">Point the camera at an attendee&rsquo;s QR code to check them in.</p>
+            <p className="text-sm text-slate-500 mb-4">Point the camera at an attendee&rsquo;s QR code to look them up.</p>
             {result ? (
-              <ScanResultCard result={result} />
+              <ScanResultCard
+                result={result}
+                processing={processing}
+                onConfirm={handleConfirmCheckIn}
+                onDismiss={handleDismiss}
+              />
             ) : (
               <p className="text-slate-400 text-sm text-center py-12">No scans yet. Awaiting a QR code...</p>
             )}
@@ -150,15 +255,4 @@ export default function AdminScanner() {
       </div>
     </AdminLayout>
   );
-}
-
-function mapProfile(registration) {
-  if (!registration) return null;
-  return {
-    registrationId: registration.registrationId,
-    fullName: registration.fullName,
-    company: registration.company,
-    registrationType: registration.registrationType,
-    mobile: registration.mobile,
-  };
 }
