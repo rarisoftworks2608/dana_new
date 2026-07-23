@@ -101,7 +101,7 @@ function SuccessModal({ result, onClose }) {
           </h3>
           <p className="text-slate-600 mb-4">
             Your Registration ID is <span className="font-bold text-primary">{result.registrationId}</span>.
-            A confirmation with your QR Code has been sent to your WhatsApp and Email.
+            A confirmation with your QR Code has been sent to your Email.
           </p>
           {result.qrCodeImage && (
             <div className="flex flex-col items-center gap-3">
@@ -160,7 +160,7 @@ export default function RegistrationForm() {
     try {
       const { data: response } = await registerAttendee(data);
       setResult(response.data);
-      toast.success('Registration successful! Check your WhatsApp/Email for your QR Code.');
+      toast.success('Registration successful! Check your Email for your QR Code.');
       reset();
     } catch (err) {
       const message = err?.response?.data?.message || 'Registration failed. Please try again.';
