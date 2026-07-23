@@ -112,7 +112,10 @@ function SuccessModal({ result, onClose }) {
               />
               <button
                 type="button"
-                onClick={() => downloadRegistrationPdf(result).catch(() => toast.error('Could not generate PDF. Please try again.'))}
+                onClick={() => downloadRegistrationPdf(result).catch((err) => {
+                  console.error('PDF generation failed:', err);
+                  toast.error('Could not generate PDF. Please try again.');
+                })}
                 className="btn-primary !py-2.5 !px-6 text-sm"
               >
                 Download PDF <FiDownload />

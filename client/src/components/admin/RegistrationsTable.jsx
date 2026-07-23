@@ -29,7 +29,7 @@ export default function RegistrationsTable({ registrations, loading, onEdit, onD
         </thead>
         <tbody>
           {registrations.map((r) => (
-            <tr key={r.id} className="border-b border-slate-100 hover:bg-slate-50">
+            <tr key={r._id} className="border-b border-slate-100 hover:bg-slate-50">
               <td className="py-3 pr-4 font-semibold text-primary">{r.registration_id}</td>
               <td className="py-3 pr-4">
                 <p className="font-medium text-slate-800">{r.full_name}</p>

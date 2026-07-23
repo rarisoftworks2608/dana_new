@@ -37,7 +37,7 @@ export default function EditRegistrationModal({ registration, onClose, onSave, s
           Edit Registration — {registration.registration_id}
         </h2>
 
-        <form onSubmit={handleSubmit((data) => onSave(registration.id, data))} className="space-y-4">
+        <form onSubmit={handleSubmit((data) => onSave(registration._id, data))} className="space-y-4">
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1">Full Name</label>
             <input {...register('full_name')} className="w-full rounded-xl border border-slate-200 px-4 py-2.5 focus:border-primary outline-none" />

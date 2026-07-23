@@ -77,7 +77,7 @@ export default function AdminDashboard() {
       return;
     }
     try {
-      await deleteRegistration(registration.id);
+      await deleteRegistration(registration._id);
       toast.success('Registration deleted');
       loadRegistrations();
       loadStats();
