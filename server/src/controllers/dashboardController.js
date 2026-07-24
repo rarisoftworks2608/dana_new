@@ -2,8 +2,7 @@ const Registration = require("../models/Registration");
 const Attendance = require("../models/Attendance");
 const Notification = require("../models/Notification");
 
-const TYPES = ["Attendee", "Exhibitor", "Dana", "Others"];
-
+const TYPES = ["Attendee", "Exhibitor", "Dana"];
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -30,9 +29,22 @@ async function getStats(req, res) {
       },
       { $sort: { _id: 1 } },
     ]);
+    // Distinct companies per type (Attendee/Exhibitor only) — group by
+    // (type, company) first to dedupe, then count how many distinct
+    // companies fell into each type.
+    const uniqueCompanyByTypeQ = Registration.aggregate([
+      {
+        $match: {
+          registration_type: { $in: ["Attendee", "Exhibitor"] },
+          company: { $nin: [null, ""] },
+        },
+      },
+      { $group: { _id: { type: "$registration_type", company: "$company" } } },
+      { $group: { _id: "$_id.type", uniqueCompanies: { $sum: 1 } } },
+    ]);
 
-    const [totalCount, byType, todayCount, checkedInCount, dailyTrend] = await Promise.all([
-      totalQ, byTypeQ, todayQ, checkedInQ, dailyTrendQ,
+    const [totalCount, byType, todayCount, checkedInCount, dailyTrend, uniqueCompanyByType] = await Promise.all([
+      totalQ, byTypeQ, todayQ, checkedInQ, dailyTrendQ, uniqueCompanyByTypeQ,
     ]);
 
     const byTypeMap = {};
@@ -40,6 +52,12 @@ async function getStats(req, res) {
     byType.forEach((row) => {
       byTypeMap[row._id] = row.count;
     });
+
+    const uniqueCompaniesByType = { Attendee: 0, Exhibitor: 0 };
+    uniqueCompanyByType.forEach((row) => {
+      uniqueCompaniesByType[row._id] = row.uniqueCompanies;
+    });
+    const totalUniqueCompanies = uniqueCompaniesByType.Attendee + uniqueCompaniesByType.Exhibitor;
 
     return res.json({
       success: true,
@@ -50,6 +68,8 @@ async function getStats(req, res) {
         pending: totalCount - checkedInCount,
         byType: byTypeMap,
         dailyTrend: dailyTrend.map((r) => ({ date: r._id, count: r.count })),
+        uniqueCompaniesByType,
+        totalUniqueCompanies,
       },
     });
   } catch (err) {
