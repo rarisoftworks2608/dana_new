@@ -30,13 +30,6 @@ export default function CompanyDistributionChart({ uniqueCompaniesByType, totalU
           <Legend />
         </PieChart>
       </ResponsiveContainer>
-
-      <p className="text-xs text-slate-400 mt-2">
-        Note: &ldquo;Total unique companies&rdquo; above counts each company once. The Attendee/Exhibitor
-        counts in the chart count a company separately for each type it registered under — so a
-        company that registered as both an Attendee and an Exhibitor is counted in both slices,
-        which is why the two slices can add up to more than the total.
-      </p>
     </div>
   );
 }

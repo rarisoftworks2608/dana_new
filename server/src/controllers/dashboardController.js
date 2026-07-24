@@ -29,11 +29,18 @@ async function getStats(req, res) {
       },
       { $sort: { _id: 1 } },
     ]);
+    // Company names are free text, so the same company often ends up saved
+    // under slightly different casing/spacing across registrations (e.g.
+    // "MRS Bearings Private Limited" vs "MRS BEARINGS PRIVATE LIMITED").
+    // Grouping on the raw string would count those as different companies,
+    // so normalize (trim + lowercase) before grouping in every query below.
+    const normalizedCompany = { $toLower: { $trim: { input: "$company" } } };
+
     // Distinct companies per type (Attendee/Exhibitor only) — group by
-    // (type, company) first to dedupe, then count how many distinct
-    // companies fell into each type. A company registered under both types
-    // counts once in EACH type's slice here — that's what the pie chart
-    // shows (Attendee-side count vs Exhibitor-side count).
+    // (type, normalized company) first to dedupe, then count how many
+    // distinct companies fell into each type. A company registered under
+    // both types counts once in EACH type's slice here — that's what the
+    // pie chart shows (Attendee-side count vs Exhibitor-side count).
     const uniqueCompanyByTypeQ = Registration.aggregate([
       {
         $match: {
@@ -41,12 +48,12 @@ async function getStats(req, res) {
           company: { $nin: [null, ""] },
         },
       },
-      { $group: { _id: { type: "$registration_type", company: "$company" } } },
+      { $group: { _id: { type: "$registration_type", company: normalizedCompany } } },
       { $group: { _id: "$_id.type", uniqueCompanies: { $sum: 1 } } },
     ]);
     // True grand-total distinct companies across Attendee+Exhibitor combined —
-    // grouped by company name ONLY (ignoring type), so a company that
-    // registered as both an Attendee and an Exhibitor is only counted once.
+    // grouped by normalized company name ONLY (ignoring type), so a company
+    // that registered as both an Attendee and an Exhibitor is only counted once.
     const totalUniqueCompaniesQ = Registration.aggregate([
       {
         $match: {
@@ -54,7 +61,7 @@ async function getStats(req, res) {
           company: { $nin: [null, ""] },
         },
       },
-      { $group: { _id: "$company" } },
+      { $group: { _id: normalizedCompany } },
       { $count: "count" },
     ]);
 
