@@ -12,7 +12,7 @@ const registrationSchema = new mongoose.Schema(
     registration_type: {
       type: String,
       required: true,
-      enum: ["Attendee", "Exhibitor", "Dana", "Others"],
+      enum: ["Attendee", "Exhibitor", "Dana"],
     },
     vendor_name: { type: String, trim: true, maxlength: 150, default: null },
     interested_areas: { type: [String], default: [] },
