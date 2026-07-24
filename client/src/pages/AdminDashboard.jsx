@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { FiUsers, FiCalendar, FiCheckCircle, FiClock, FiSearch, FiDownload, FiFileText, FiBriefcase } from 'react-icons/fi';
+import { FiUsers, FiCalendar, FiCheckCircle, FiClock, FiSearch, FiDownload, FiFileText } from 'react-icons/fi';
 import AdminLayout from '../layouts/AdminLayout';
 import StatCard from '../components/admin/StatCard';
 import TypeDistributionChart from '../components/admin/TypeDistributionChart';
@@ -99,12 +99,11 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayout title="Dashboard">
-      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
         <StatCard icon={FiUsers} label="Total Registrations" value={stats?.total ?? '—'} accent="primary" />
         <StatCard icon={FiCalendar} label="Today's Registrations" value={stats?.today ?? '—'} accent="accent" />
         <StatCard icon={FiCheckCircle} label="Checked In" value={stats?.checkedIn ?? '—'} accent="green" />
         <StatCard icon={FiClock} label="Pending Check-In" value={stats?.pending ?? '—'} accent="amber" />
-        <StatCard icon={FiBriefcase} label="Unique Companies (Attendee + Exhibitor)" value={stats?.totalUniqueCompanies ?? '—'} accent="primary" />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6 mb-8">
@@ -114,7 +113,10 @@ export default function AdminDashboard() {
         </div>
         <div className="card p-6">
           <h3 className="font-heading font-bold text-primary-dark mb-4">Unique Companies — Attendee vs Exhibitor</h3>
-          <CompanyDistributionChart uniqueCompaniesByType={stats?.uniqueCompaniesByType} />
+          <CompanyDistributionChart
+            uniqueCompaniesByType={stats?.uniqueCompaniesByType}
+            totalUniqueCompanies={stats?.totalUniqueCompanies}
+          />
         </div>
         <div className="card p-6">
           <h3 className="font-heading font-bold text-primary-dark mb-4">Daily Registration Trend</h3>
