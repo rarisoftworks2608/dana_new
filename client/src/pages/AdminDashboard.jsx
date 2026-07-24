@@ -4,7 +4,7 @@ import { FiUsers, FiCalendar, FiCheckCircle, FiClock, FiSearch, FiDownload, FiFi
 import AdminLayout from '../layouts/AdminLayout';
 import StatCard from '../components/admin/StatCard';
 import TypeDistributionChart from '../components/admin/TypeDistributionChart';
-import CompanyDistributionChart from '../components/admin/CompanyDistributionChart';
+import UniqueCompaniesPanel from '../components/admin/UniqueCompaniesPanel';
 import DailyTrendChart from '../components/admin/DailyTrendChart';
 import RegistrationsTable from '../components/admin/RegistrationsTable';
 import EditRegistrationModal from '../components/admin/EditRegistrationModal';
@@ -106,22 +106,23 @@ export default function AdminDashboard() {
         <StatCard icon={FiClock} label="Pending Check-In" value={stats?.pending ?? '—'} accent="amber" />
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid lg:grid-cols-2 gap-6 mb-8">
         <div className="card p-6">
           <h3 className="font-heading font-bold text-primary-dark mb-4">Category-wise Registrations</h3>
           <TypeDistributionChart byType={stats?.byType} />
         </div>
         <div className="card p-6">
-          <h3 className="font-heading font-bold text-primary-dark mb-4">Unique Companies — Attendee vs Exhibitor</h3>
-          <CompanyDistributionChart
-            uniqueCompaniesByType={stats?.uniqueCompaniesByType}
-            totalUniqueCompanies={stats?.totalUniqueCompanies}
-          />
-        </div>
-        <div className="card p-6">
           <h3 className="font-heading font-bold text-primary-dark mb-4">Daily Registration Trend</h3>
           <DailyTrendChart dailyTrend={stats?.dailyTrend} />
         </div>
+      </div>
+
+      <div className="mb-8">
+        <UniqueCompaniesPanel
+          uniqueCompaniesByType={stats?.uniqueCompaniesByType}
+          totalUniqueCompanies={stats?.totalUniqueCompanies}
+          companyListByType={stats?.companyListByType}
+        />
       </div>
 
       <div className="card p-6">

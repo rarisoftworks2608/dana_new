@@ -7,6 +7,76 @@ function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+/**
+ * Company names are free text, so the same company routinely ends up saved
+ * under different casing/spacing/abbreviations across registrations (e.g.
+ * "MRS Bearings Private Limited" vs "MRS BEARINGS PRIVATE LIMITED" vs
+ * "Rari Pvt Ltd" vs "Rari Private Limited"). Comparing raw strings would
+ * count those as different companies, so fold common legal-suffix
+ * abbreviations to a single form before comparing.
+ */
+function normalizeCompanyName(raw) {
+  return String(raw)
+    .toLowerCase()
+    .replace(/[.,]/g, "")
+    .replace(/\bprivate\b/g, "pvt")
+    .replace(/\blimited\b/g, "ltd")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Builds, for each registration_type in TYPES, the list of unique company
+ * display names (one representative spelling per normalized company - the
+ * most common exact variant seen), sorted alphabetically.
+ */
+async function getUniqueCompanyData() {
+  const rows = await Registration.find(
+    { registration_type: { $in: ["Attendee", "Exhibitor"] }, company: { $nin: [null, ""] } },
+    "company registration_type"
+  ).lean();
+
+  // key: `${type}::${normalizedName}` -> Map(exactVariant -> count)
+  const groupsByType = { Attendee: new Map(), Exhibitor: new Map() };
+  const allNormalizedNames = new Set();
+
+  rows.forEach((row) => {
+    const norm = normalizeCompanyName(row.company);
+    allNormalizedNames.add(norm);
+
+    const group = groupsByType[row.registration_type];
+    if (!group) return;
+    if (!group.has(norm)) group.set(norm, new Map());
+    const variants = group.get(norm);
+    variants.set(row.company, (variants.get(row.company) || 0) + 1);
+  });
+
+  const companyListByType = { Attendee: [], Exhibitor: [] };
+  Object.entries(groupsByType).forEach(([type, group]) => {
+    group.forEach((variants) => {
+      let bestName = null;
+      let bestCount = -1;
+      variants.forEach((count, name) => {
+        if (count > bestCount) {
+          bestCount = count;
+          bestName = name;
+        }
+      });
+      companyListByType[type].push(bestName);
+    });
+    companyListByType[type].sort((a, b) => a.localeCompare(b));
+  });
+
+  return {
+    companyListByType,
+    uniqueCompaniesByType: {
+      Attendee: companyListByType.Attendee.length,
+      Exhibitor: companyListByType.Exhibitor.length,
+    },
+    totalUniqueCompanies: allNormalizedNames.size,
+  };
+}
+
 async function getStats(req, res) {
   try {
     const startOfToday = new Date();
@@ -29,44 +99,8 @@ async function getStats(req, res) {
       },
       { $sort: { _id: 1 } },
     ]);
-    // Company names are free text, so the same company often ends up saved
-    // under slightly different casing/spacing across registrations (e.g.
-    // "MRS Bearings Private Limited" vs "MRS BEARINGS PRIVATE LIMITED").
-    // Grouping on the raw string would count those as different companies,
-    // so normalize (trim + lowercase) before grouping in every query below.
-    const normalizedCompany = { $toLower: { $trim: { input: "$company" } } };
-
-    // Distinct companies per type (Attendee/Exhibitor only) — group by
-    // (type, normalized company) first to dedupe, then count how many
-    // distinct companies fell into each type. A company registered under
-    // both types counts once in EACH type's slice here — that's what the
-    // pie chart shows (Attendee-side count vs Exhibitor-side count).
-    const uniqueCompanyByTypeQ = Registration.aggregate([
-      {
-        $match: {
-          registration_type: { $in: ["Attendee", "Exhibitor"] },
-          company: { $nin: [null, ""] },
-        },
-      },
-      { $group: { _id: { type: "$registration_type", company: normalizedCompany } } },
-      { $group: { _id: "$_id.type", uniqueCompanies: { $sum: 1 } } },
-    ]);
-    // True grand-total distinct companies across Attendee+Exhibitor combined —
-    // grouped by normalized company name ONLY (ignoring type), so a company
-    // that registered as both an Attendee and an Exhibitor is only counted once.
-    const totalUniqueCompaniesQ = Registration.aggregate([
-      {
-        $match: {
-          registration_type: { $in: ["Attendee", "Exhibitor"] },
-          company: { $nin: [null, ""] },
-        },
-      },
-      { $group: { _id: normalizedCompany } },
-      { $count: "count" },
-    ]);
-
-    const [totalCount, byType, todayCount, checkedInCount, dailyTrend, uniqueCompanyByType, totalUniqueCompaniesResult] = await Promise.all([
-      totalQ, byTypeQ, todayQ, checkedInQ, dailyTrendQ, uniqueCompanyByTypeQ, totalUniqueCompaniesQ,
+    const [totalCount, byType, todayCount, checkedInCount, dailyTrend, uniqueCompanyData] = await Promise.all([
+      totalQ, byTypeQ, todayQ, checkedInQ, dailyTrendQ, getUniqueCompanyData(),
     ]);
 
     const byTypeMap = {};
@@ -74,12 +108,6 @@ async function getStats(req, res) {
     byType.forEach((row) => {
       byTypeMap[row._id] = row.count;
     });
-
-    const uniqueCompaniesByType = { Attendee: 0, Exhibitor: 0 };
-    uniqueCompanyByType.forEach((row) => {
-      uniqueCompaniesByType[row._id] = row.uniqueCompanies;
-    });
-    const totalUniqueCompanies = totalUniqueCompaniesResult[0]?.count ?? 0;
 
     return res.json({
       success: true,
@@ -90,8 +118,9 @@ async function getStats(req, res) {
         pending: totalCount - checkedInCount,
         byType: byTypeMap,
         dailyTrend: dailyTrend.map((r) => ({ date: r._id, count: r.count })),
-        uniqueCompaniesByType,
-        totalUniqueCompanies,
+        uniqueCompaniesByType: uniqueCompanyData.uniqueCompaniesByType,
+        totalUniqueCompanies: uniqueCompanyData.totalUniqueCompanies,
+        companyListByType: uniqueCompanyData.companyListByType,
       },
     });
   } catch (err) {
