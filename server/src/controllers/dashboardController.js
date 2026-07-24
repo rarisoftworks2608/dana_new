@@ -31,7 +31,9 @@ async function getStats(req, res) {
     ]);
     // Distinct companies per type (Attendee/Exhibitor only) — group by
     // (type, company) first to dedupe, then count how many distinct
-    // companies fell into each type.
+    // companies fell into each type. A company registered under both types
+    // counts once in EACH type's slice here — that's what the pie chart
+    // shows (Attendee-side count vs Exhibitor-side count).
     const uniqueCompanyByTypeQ = Registration.aggregate([
       {
         $match: {
@@ -42,9 +44,22 @@ async function getStats(req, res) {
       { $group: { _id: { type: "$registration_type", company: "$company" } } },
       { $group: { _id: "$_id.type", uniqueCompanies: { $sum: 1 } } },
     ]);
+    // True grand-total distinct companies across Attendee+Exhibitor combined —
+    // grouped by company name ONLY (ignoring type), so a company that
+    // registered as both an Attendee and an Exhibitor is only counted once.
+    const totalUniqueCompaniesQ = Registration.aggregate([
+      {
+        $match: {
+          registration_type: { $in: ["Attendee", "Exhibitor"] },
+          company: { $nin: [null, ""] },
+        },
+      },
+      { $group: { _id: "$company" } },
+      { $count: "count" },
+    ]);
 
-    const [totalCount, byType, todayCount, checkedInCount, dailyTrend, uniqueCompanyByType] = await Promise.all([
-      totalQ, byTypeQ, todayQ, checkedInQ, dailyTrendQ, uniqueCompanyByTypeQ,
+    const [totalCount, byType, todayCount, checkedInCount, dailyTrend, uniqueCompanyByType, totalUniqueCompaniesResult] = await Promise.all([
+      totalQ, byTypeQ, todayQ, checkedInQ, dailyTrendQ, uniqueCompanyByTypeQ, totalUniqueCompaniesQ,
     ]);
 
     const byTypeMap = {};
@@ -57,7 +72,7 @@ async function getStats(req, res) {
     uniqueCompanyByType.forEach((row) => {
       uniqueCompaniesByType[row._id] = row.uniqueCompanies;
     });
-    const totalUniqueCompanies = uniqueCompaniesByType.Attendee + uniqueCompaniesByType.Exhibitor;
+    const totalUniqueCompanies = totalUniqueCompaniesResult[0]?.count ?? 0;
 
     return res.json({
       success: true,

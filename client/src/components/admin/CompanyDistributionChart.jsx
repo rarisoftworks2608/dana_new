@@ -13,25 +13,17 @@ export default function CompanyDistributionChart({ uniqueCompaniesByType }) {
     return <p className="text-slate-400 text-sm text-center py-12">No company data yet.</p>;
   }
 
-  const total = data.reduce((sum, entry) => sum + entry.value, 0);
-
   return (
-    <div className="relative">
-      <ResponsiveContainer width="100%" height={280}>
-        <PieChart>
-          <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={90} label>
-            {data.map((entry) => (
-              <Cell key={entry.name} fill={COLORS[entry.name] || '#64748B'} />
-            ))}
-          </Pie>
-          <Tooltip />
-          <Legend />
-        </PieChart>
-      </ResponsiveContainer>
-      <div className="absolute inset-0 top-0 flex flex-col items-center justify-center pointer-events-none" style={{ bottom: '56px' }}>
-        <p className="text-2xl font-heading font-extrabold text-primary-dark">{total}</p>
-        <p className="text-xs text-slate-500">Companies</p>
-      </div>
-    </div>
+    <ResponsiveContainer width="100%" height={280}>
+      <PieChart>
+        <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label>
+          {data.map((entry) => (
+            <Cell key={entry.name} fill={COLORS[entry.name] || '#64748B'} />
+          ))}
+        </Pie>
+        <Tooltip />
+        <Legend />
+      </PieChart>
+    </ResponsiveContainer>
   );
 }
