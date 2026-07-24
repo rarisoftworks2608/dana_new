@@ -3,7 +3,9 @@ import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recha
 const COLORS = ['#003B8E', '#0057D8', '#F5B301', '#64748B'];
 
 export default function TypeDistributionChart({ byType }) {
-  const data = Object.entries(byType || {}).map(([name, value]) => ({ name, value }));
+  const data = Object.entries(byType || {})
+    .filter(([name]) => name !== 'Others')
+    .map(([name, value]) => ({ name, value }));
 
   if (data.length === 0) {
     return <p className="text-slate-400 text-sm text-center py-12">No registration data yet.</p>;
