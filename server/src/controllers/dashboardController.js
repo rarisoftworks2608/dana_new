@@ -7,22 +7,40 @@ function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+// "ies" -> "y" (technologies -> technology), plain trailing "s" -> ""
+// (systems -> system), leaving short words / double-s endings alone.
+function singularize(word) {
+  if (word.endsWith("ies") && word.length > 4) return `${word.slice(0, -3)}y`;
+  if (word.endsWith("s") && !word.endsWith("ss") && word.length > 3) return word.slice(0, -1);
+  return word;
+}
+
 /**
  * Company names are free text, so the same company routinely ends up saved
- * under different casing/spacing/abbreviations across registrations (e.g.
- * "MRS Bearings Private Limited" vs "MRS BEARINGS PRIVATE LIMITED" vs
- * "Rari Pvt Ltd" vs "Rari Private Limited"). Comparing raw strings would
- * count those as different companies, so fold common legal-suffix
- * abbreviations to a single form before comparing.
+ * under different casing/spacing/wording across registrations - not just
+ * case (e.g. "MRS BEARINGS PRIVATE LIMITED"), but also:
+ *   - "&" vs "and"                          ("Systems & Software" vs "... and ...")
+ *   - legal-suffix words present/absent/abbreviated  ("Pvt Ltd" vs "Private Limited" vs omitted)
+ *   - plural vs singular wording             ("Technologies" vs "Technology")
+ * Comparing raw strings would count all of those as different companies, so
+ * normalize aggressively before comparing: fold "&" to "and", drop
+ * legal-entity words entirely (they don't distinguish one company from
+ * another), and singularize each remaining word.
  */
 function normalizeCompanyName(raw) {
-  return String(raw)
+  const cleaned = String(raw)
     .toLowerCase()
     .replace(/[.,]/g, "")
-    .replace(/\bprivate\b/g, "pvt")
-    .replace(/\blimited\b/g, "ltd")
+    .replace(/&/g, " and ")
+    .replace(/\b(private|pvt|limited|ltd|llp|inc|incorporated)\b/g, "")
     .replace(/\s+/g, " ")
     .trim();
+
+  return cleaned
+    .split(" ")
+    .filter(Boolean)
+    .map(singularize)
+    .join(" ");
 }
 
 /**
